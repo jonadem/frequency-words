@@ -39,13 +39,14 @@ def count_occ_in_dir(indir, outfilename):
         print("Walk '{0}' and write into '{1}'".format(indir, outfilename))
 
     occ = {}
+    parser = etree.XMLParser(recover=True) #recovers from bad characters.
 
     for dirpath, _, fnames in os.walk(indir):
         for comp_xml_file in fnames:
             if comp_xml_file.lower().endswith('.xml.gz'):
                 if _VERBOSE:
                     print(" Processing {0} at {1}".format(comp_xml_file, dirpath))
-                tree = etree.parse(os.path.join(dirpath, comp_xml_file))
+                tree = etree.parse(os.path.join(dirpath, comp_xml_file), parser)
                 for word in tree.xpath("/document/s/w"):
                     lower_case_word = word.text.lower()
                     occ[lower_case_word] = occ.get(lower_case_word, 0) + 1
