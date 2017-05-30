@@ -27,7 +27,7 @@ class ReadableDir(argparse.Action):
             raise argparse.ArgumentTypeError("readable_dir:{0} is not a readable dir".format(prospective_dir))
 
 
-def count_occ_in_dir(indir, outfilename):
+def count_occ_in_dir(indir, outfilename, iscaseinsensitive):
     """
     core function. Count the word frequency in files.
 
@@ -48,8 +48,10 @@ def count_occ_in_dir(indir, outfilename):
                     print(" Processing {0} at {1}".format(comp_xml_file, dirpath))
                 tree = etree.parse(os.path.join(dirpath, comp_xml_file), parser)
                 for word in tree.xpath("/document/s/w"):
-                    lower_case_word = word.text.lower()
-                    occ[lower_case_word] = occ.get(lower_case_word, 0) + 1
+                    tmp_word = word.text
+                    if iscaseinsensitive:
+                        tmp_word = tmp_word.lower()
+                    occ[tmp_word] = occ.get(tmp_word, 0) + 1
 
     if occ:
         sorted_occ = sorted(occ.items(), key=operator.itemgetter(1), reverse=True)
@@ -73,16 +75,17 @@ def main(arguments):
 
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-i', '--indir', help="Input directory", action=ReadableDir,
+    parser.add_argument('-d', '--dir', help="Input directory", action=ReadableDir,
                         default="./")
     parser.add_argument('-o', '--outfilename', help="Output filename", default="Out.log")
+    parser.add_argument('-i', '--ignorecase', help="Ignore case", action="store_true")
     parser.add_argument('-q', '--quiet', help="Quiet mode", action="store_true")
     args = parser.parse_args(arguments)
 
     if args.quiet:
         _VERBOSE = 0
 
-    count_occ_in_dir(args.indir, args.outfilename)
+    count_occ_in_dir(args.dir, args.outfilename, args.ignorecase)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
